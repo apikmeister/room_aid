@@ -9,66 +9,76 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun GroceryScreen() {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.Black
+        color = Color(0xCC78C1FC)
     ) {
         Box {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     "Grocery",
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White
+                    color = Color(0xFF000000)
                 )
+                // Removed grocery list preview
                 Spacer(modifier = Modifier.height(16.dp))
-                GroceryList(listOf("Lorem ipsum", "Lorem ipsum", "Lorem ipsum"))
+                GroceryList(listOf("Lorem ipsum","Lorem ipsum","Lorem ipsum","Lorem ipsum"))
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { /* TODO: Implement pay action */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF013A68)),
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .size(56.dp)
+                        .width(300.dp)
+                        .height(56.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Pay Here",
-                        tint = Color.White
+                    Text(
+                        text = "Pay Here",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
             FloatingActionButton(
                 onClick = { /* TODO: Implement add item action */ },
-//                backgroundColor = Color.Blue,
-                contentColor = Color.White,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Item"
-                )
+                // Wrap the FloatingActionButton in a Surface to set the background color
+                Surface(
+                    color = Color(0xFF013A68), // Set your custom background color here
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        tint = Color.White,
+                        contentDescription = "Add Item"
+                    )
+                }
             }
         }
     }
 }
 
+
 @Composable
 fun GroceryList(items: List<String>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray),
+        colors = CardDefaults.cardColors(containerColor = Color(0xE61B4C74)),
         shape = MaterialTheme.shapes.medium
     ) {
         Column(
@@ -94,7 +104,7 @@ fun GroceryItem(text: String) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
+            color = Color(0xFFFFFFFF),
             modifier = Modifier.weight(1f)
         )
         Checkbox(
