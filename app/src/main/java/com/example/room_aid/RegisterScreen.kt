@@ -1,9 +1,6 @@
 package com.example.room_aid
 
-<<<<<<< HEAD
-=======
 import android.widget.Toast
->>>>>>> b11428c (Update screen to use SQLiteDB)
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
