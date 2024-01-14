@@ -1,5 +1,6 @@
 package com.example.room_aid
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,12 +13,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @Composable
-fun RegisterScreen(onRegister: (String, String) -> Unit) {
+fun RegisterScreen(navController: NavController, dbHelper: DBHelper) {
     var registerUsername by remember { mutableStateOf("") }
     var registerPassword by remember { mutableStateOf("") }
-    val databaseHelper = DatabaseHelper(LocalContext.current)
+
+    var usernameError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -49,7 +55,8 @@ fun RegisterScreen(onRegister: (String, String) -> Unit) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Next
-                )
+                ),
+                isError = usernameError
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -63,19 +70,50 @@ fun RegisterScreen(onRegister: (String, String) -> Unit) {
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = {
-                    // Perform registration action
-                    onRegister(registerUsername, registerPassword)
-                })
+                isError = passwordError
+//                keyboardOptions = KeyboardOptions.Default.copy(
+//                    imeAction = ImeAction.Done
+//                ),
+//                keyboardActions = KeyboardActions(onDone = {
+//                    // Perform registration action
+//
+//                })
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     // Perform registration action
-                    onRegister(registerUsername, registerPassword)
+                    usernameError = false
+                    passwordError = false
+
+                    // Check for validation
+                    if (registerUsername.isBlank()) {
+                        usernameError = true
+                    }
+                    if (registerPassword.isBlank()) {
+                        passwordError = true
+                    }
+                    if (!usernameError && !passwordError) {
+                        val isUserAdded = dbHelper.addUser(registerUsername, registerPassword)
+                        if (isUserAdded) {
+                            navController.navigate("login") {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Registration failed, please try again.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Please fill in all forms.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
                 modifier = Modifier
@@ -87,13 +125,3 @@ fun RegisterScreen(onRegister: (String, String) -> Unit) {
         }
     }
 }
-
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
-@Composable
-fun RegisterScreenPreview() {
-    RegisterScreen { username, password ->
-        // Handle registration click
-    }
-}
-
-

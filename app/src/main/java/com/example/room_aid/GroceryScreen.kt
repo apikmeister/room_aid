@@ -1,21 +1,73 @@
 package com.example.room_aid
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
 @Composable
-fun GroceryScreen() {
+fun GroceryScreen(navController: NavController, dbHelper: DBHelper) {
+    val groceries = remember { mutableStateOf(listOf<Grocery>()) }
+    val context = LocalContext.current
+
+    // Retrieve userId from shared preferences
+    val sharedPref = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+    val userId = sharedPref.getInt("userId", -1) // -1 as default if not found
+
+    LaunchedEffect(Unit) {
+        if (userId != -1) {
+            groceries.value = dbHelper.getAllGroceriesById(userId)
+        }
+    }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var groceryToDelete by remember { mutableStateOf<Grocery?>(null) }
+
+    if (showDeleteDialog && groceryToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Grocery") },
+            text = { Text("Are you sure you want to delete this Grocery?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        groceryToDelete?.let { grocery ->
+                            dbHelper.deleteGrocery((grocery.id).toString())
+                            groceries.value = dbHelper.getAllGroceriesById(userId)
+                        }
+                        showDeleteDialog = false
+                        groceryToDelete = null
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xCC78C1FC)
@@ -34,7 +86,14 @@ fun GroceryScreen() {
                 )
                 // Removed grocery list preview
                 Spacer(modifier = Modifier.height(16.dp))
-                GroceryList(listOf("Lorem ipsum","Lorem ipsum","Lorem ipsum","Lorem ipsum"))
+                if (groceries.value.isEmpty()) {
+                    Text("No groceries found", color = Color.White)
+                } else {
+                    GroceryList(groceries.value, dbHelper) { grocery ->
+                        groceryToDelete = grocery
+                        showDeleteDialog = true
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { /* TODO: Implement pay action */ },
@@ -52,7 +111,9 @@ fun GroceryScreen() {
                 }
             }
             FloatingActionButton(
-                onClick = { /* TODO: Implement add item action */ },
+                onClick = { navController.navigate("addGrocery") },
+//                backgroundColor = Color.Blue,
+                contentColor = Color.White,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
@@ -75,7 +136,7 @@ fun GroceryScreen() {
 
 
 @Composable
-fun GroceryList(items: List<String>) {
+fun GroceryList(items: List<Grocery>, dbHelper: DBHelper, onDeleteClick: (Grocery) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xE61B4C74)),
@@ -86,15 +147,27 @@ fun GroceryList(items: List<String>) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            items.forEach { item ->
-                GroceryItem(item)
+//            items.forEach { item ->
+//                GroceryItem(item)
+//            }
+            items.forEach { grocery ->
+                GroceryItem(
+                    text = grocery.name,
+                    checked = grocery.completed,
+                    onCheckedChange = { isChecked ->
+                        dbHelper.updateGroceriesCompletion(grocery.id, isChecked)
+                    },
+                    onDeleteClick = {
+                        onDeleteClick(grocery)
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun GroceryItem(text: String) {
+fun GroceryItem(text: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, onDeleteClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -108,15 +181,16 @@ fun GroceryItem(text: String) {
             modifier = Modifier.weight(1f)
         )
         Checkbox(
-            checked = false,
-            onCheckedChange = { /* TODO: Implement check action */ },
+            checked = checked,
+            onCheckedChange = onCheckedChange,
             colors = CheckboxDefaults.colors(checkmarkColor = Color.White)
         )
+        IconButton(onClick = onDeleteClick) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = Color.Red
+            )
+        }
     }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
-@Composable
-fun GroceryScreenPreview() {
-    GroceryScreen()
 }
