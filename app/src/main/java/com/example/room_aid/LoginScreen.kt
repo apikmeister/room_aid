@@ -1,108 +1,104 @@
 package com.example.room_aid
 
+import android.content.Context
+import androidx.compose.runtime.Composable
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.room_aid.model.User
+import androidx.navigation.NavController
 
 @Composable
-fun LoginScreen(onLogin: (User) -> Unit) {
+fun LoginScreen(navController: NavController, dbHelper: DBHelper) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val databaseHelper = DatabaseHelper(LocalContext.current)
+    var loginResult by remember { mutableStateOf("") }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.Black
+    var usernameError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Login Section
-            Text(
-                "Login",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username", color = Color.Gray) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.Gray
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password", color = Color.Gray) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.Gray
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = {
-                    // Perform login action
-                    val user = databaseHelper.getUser(username, password)
-                    if (user != null) {
-                        onLogin(user)
-                    } else {
-                        // Handle incorrect login
-                    }
-                })
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    // Perform login action
-                    val user = databaseHelper.getUser(username, password)
-                    if (user != null) {
-                        onLogin(user)
-                    } else {
-                        // Handle incorrect login
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text("Login", color = Color.White)
-            }
-        }
-    }
-}
+        TextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Username") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = usernameError
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation(),
+            isError = passwordError
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {
+            // Reset validation errors
+            usernameError = false
+            passwordError = false
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
-@Composable
-fun LoginScreenPreview() {
-    LoginScreen { user ->
-        // Handle login action
+            // Check for validation
+            if (username.isBlank()) {
+                usernameError = true
+            }
+            if (password.isBlank()) {
+                passwordError = true
+            }
+
+            if (!usernameError && !passwordError) {
+                val isValidUser = dbHelper.validateUser(username, password)
+                if (isValidUser) {
+                    val userId = dbHelper.getUserIdByUsername(username)
+                    if (userId != null) {
+                        // User ID is valid, proceed to save in shared preferences
+                        val sharedPref =
+                            context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+                        with(sharedPref.edit()) {
+                            putBoolean("isLoggedIn", true)
+                            putString("username", username)
+                            putInt("userId", userId)
+                            apply()
+                        }
+                        // Navigate to another screen
+                        navController.navigate("menuScreen") {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                    } else {
+                        // User ID is null, consider login as failed
+                        loginResult = "Login Failed"
+                    }
+                } else {
+                    loginResult = "Login Failed"
+                }
+            } else {
+                loginResult = "Please fill in all fields"
+            }
+        }) {
+            Text("Login")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(loginResult)
     }
 }
