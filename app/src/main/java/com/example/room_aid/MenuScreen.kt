@@ -4,6 +4,8 @@ package com.example.room_aid
 import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +19,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun MenuScreen(navController: NavController) {
+fun MenuScreen(navController: NavController, onLogout: () -> Unit) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
     val username = sharedPref.getString("username", "Guest") ?: "Guest"
@@ -45,9 +47,19 @@ fun MenuScreen(navController: NavController) {
             MenuButton("Grocery") { navController.navigate("viewGrocery") }
             Spacer(modifier = Modifier.height(8.dp))
             MenuButton("Payment") { navController.navigate("") }//TODO: add route
+            Spacer(modifier = Modifier.height(16.dp))
+            IconButton(onClick = onLogout) {
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = "Logout",
+                    tint = Color.White
+                )
+            }
         }
     }
 }
+
+
 
 @Composable
 fun MenuButton(text: String, onClick: () -> Unit) {
