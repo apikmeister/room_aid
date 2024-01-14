@@ -112,7 +112,7 @@ fun GroceryEntryScreen(navController: NavController, dbHelper: DBHelper) {
                                 "Grocery Added!",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            navController.navigate("groceryScreen") {
+                            navController.navigate("viewGrocery") {
                                 popUpTo(navController.graph.startDestinationId)
                                 launchSingleTop = true
                             }
