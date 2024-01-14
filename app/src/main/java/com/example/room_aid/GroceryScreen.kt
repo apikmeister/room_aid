@@ -22,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import android.util.Log
+
 
 @Composable
 fun GroceryScreen(navController: NavController, dbHelper: DBHelper) {
@@ -33,8 +35,11 @@ fun GroceryScreen(navController: NavController, dbHelper: DBHelper) {
     val userId = sharedPref.getInt("userId", -1) // -1 as default if not found
 
     LaunchedEffect(Unit) {
+        Log.d("MyComposable", "LaunchedEffect is running")
+        Log.d("MyComposable", "LaunchedEffect for $userId")
         if (userId != -1) {
             groceries.value = dbHelper.getAllGroceriesById(userId)
+            Log.d("MyComposable", "What does this get? ${dbHelper.getAllGroceriesById(userId)}")
         }
     }
 
@@ -147,9 +152,6 @@ fun GroceryList(items: List<Grocery>, dbHelper: DBHelper, onDeleteClick: (Grocer
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-//            items.forEach { item ->
-//                GroceryItem(item)
-//            }
             items.forEach { grocery ->
                 GroceryItem(
                     text = grocery.name,

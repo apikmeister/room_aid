@@ -1,5 +1,6 @@
 package com.example.room_aid
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -27,6 +28,9 @@ fun GroceryEntryScreen(navController: NavController, dbHelper: DBHelper) {
     var groceryNameError by remember { mutableStateOf(false) }
     var amountError by remember { mutableStateOf(false) }
     var priceError by remember { mutableStateOf(false) }
+
+    val sharedPref = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+    val userId = sharedPref.getInt("userId", -1) // -1 as default if not found
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -105,30 +109,32 @@ fun GroceryEntryScreen(navController: NavController, dbHelper: DBHelper) {
                     if (amount.isBlank()) amountError = true
                     if (price.isBlank()) priceError = true
                     if (!groceryNameError && !amountError && !priceError) {
-                        val isSuccess = dbHelper.addGrocery(groceryName, amount, price)
-                        if (isSuccess) {
-                            Toast.makeText(
-                                context,
-                                "Grocery Added!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            navController.navigate("viewGrocery") {
-                                popUpTo(navController.graph.startDestinationId)
-                                launchSingleTop = true
+                        if (userId != -1) {
+                            val isSuccess = dbHelper.addGrocery(userId, groceryName, amount, price)
+                            if (isSuccess) {
+                                Toast.makeText(
+                                    context,
+                                    "Grocery Added!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                navController.navigate("viewGrocery") {
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Grocery Add Failed!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else {
                             Toast.makeText(
                                 context,
-                                "Grocery Add Failed!",
+                                "Please fill in all required fields",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Please fill in all required fields",
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),

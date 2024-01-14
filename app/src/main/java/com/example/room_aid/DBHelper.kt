@@ -4,13 +4,14 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, "RoomAidDB", null, 1) {
+class DBHelper(context: Context) : SQLiteOpenHelper(context, "RoomAidDB", null, 4) {
 
     override fun onCreate(db: SQLiteDatabase) {
         // Create user table
-        val createUserTable = "CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)"
-        db.execSQL(createUserTable)
+//        val createUserTable = "CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)"
+//        db.execSQL(createUserTable)
 
         // Grocery table
         val createGroceryTable = """
@@ -42,10 +43,19 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "RoomAidDB", null, 
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS users")
-        db.execSQL("DROP TABLE IF EXISTS groceries")
-        db.execSQL("DROP TABLE IF EXISTS tasks")
-        onCreate(db)
+        if (oldVersion < 4) {
+//            db.execSQL("DROP TABLE IF EXISTS users")
+            db.execSQL("DROP TABLE IF EXISTS groceries")
+            db.execSQL("DROP TABLE IF EXISTS tasks")
+            onCreate(db)
+        }
+    }
+
+    fun getCurrentVersion(): Int {
+        val db = this.readableDatabase
+        val version = db.version
+        db.close()
+        return version
     }
 
     //USER
@@ -98,9 +108,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "RoomAidDB", null, 
     }
 
     // Grocery
-    fun addGrocery(name: String, amount: String, price: String): Boolean {
+    fun addGrocery(userId: Int, name: String, amount: String, price: String): Boolean {
         val db = this.writableDatabase
         val contentValues = ContentValues().apply {
+            put("userId", userId)
             put("name", name)
             put("amount", amount)
             put("price", price)
@@ -160,13 +171,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, "RoomAidDB", null, 
     fun getAllGroceriesById(userId: Int): List<Grocery> {
         val groceryList = mutableListOf<Grocery>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT id, name, completed FROM groceries WHERE userId = ?", arrayOf(userId.toString()))
+        val cursor = db.rawQuery("SELECT id, name, amount, price, completed FROM groceries WHERE userId = ?", arrayOf(userId.toString()) )
         if (cursor.moveToFirst()) {
             do {
                 val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
                 val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                val amount = cursor.getString(cursor.getColumnIndexOrThrow("amount"))
+                val price = cursor.getString(cursor.getColumnIndexOrThrow("price"))
                 val completed = cursor.getInt(cursor.getColumnIndexOrThrow("completed")) != 0
-                groceryList.add(Grocery(id, name, completed))
+                groceryList.add(Grocery(id, name, amount, price, completed))
             } while (cursor.moveToNext())
         }
         cursor.close()
