@@ -2,6 +2,7 @@ package com.example.room_aid
 
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,8 +46,12 @@ fun MenuScreen(navController: NavController, onLogout: () -> Unit) {
 //            MenuButton("Expenses") { navController.navigate("") }//TODO: add route
             Spacer(modifier = Modifier.height(8.dp))
             MenuButton("Grocery") { navController.navigate("viewGrocery") }
-            Spacer(modifier = Modifier.height(8.dp))
-            MenuButton("Payment") { navController.navigate("") }//TODO: add route
+//            Spacer(modifier = Modifier.height(8.dp))
+//            MenuButton("Payment") { Toast.makeText(
+//                context,
+//                "Not implemented",
+//                Toast.LENGTH_SHORT
+//            ).show() }//TODO: add route
             Spacer(modifier = Modifier.height(16.dp))
             IconButton(onClick = onLogout) {
                 Icon(

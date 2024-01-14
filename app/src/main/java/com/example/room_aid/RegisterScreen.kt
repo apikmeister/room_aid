@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -70,7 +71,8 @@ fun RegisterScreen(navController: NavController, dbHelper: DBHelper) {
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                isError = passwordError
+                isError = passwordError,
+                visualTransformation = PasswordVisualTransformation(),
 //                keyboardOptions = KeyboardOptions.Default.copy(
 //                    imeAction = ImeAction.Done
 //                ),
@@ -121,6 +123,18 @@ fun RegisterScreen(navController: NavController, dbHelper: DBHelper) {
                     .height(48.dp)
             ) {
                 Text("Register", color = Color.White)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    navController.navigate("login")
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text("Already have an account? Log In", color = Color.White)
             }
         }
     }

@@ -133,7 +133,7 @@ fun GroceryEntryScreen(navController: NavController, dbHelper: DBHelper) {
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .height(48.dp)
             ) {
                 Text("Save", color = Color.White)
